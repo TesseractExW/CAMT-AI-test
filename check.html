@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@300;400;600;700&amp;display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตรวจสอบสายพันธุ์ - AI Analysis</title>
+
+<style>
+:root {
+    --primary-color: #00695c;
+    --secondary-color: #43a047;
+    --bg-gradient: linear-gradient(135deg, #e0f2f1 0%, #e8f5e9 100%);
+    --text-color: #263238;
+}
+
+body {
+    font-family: "Prompt", sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    z-index: 1000;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 2rem;
+    transition: all 0.3s ease;
+}
+
+nav a:hover, nav a.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+main {
+    text-align: center;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    max-width: 500px;
+    width: 90%;
+    margin-top: 100px;
+    margin-bottom: 40px;
+}
+
+h2 { color: var(--primary-color); }
+
+/* Upload Area Styling */
+input[type="file"] { display: none; }
+
+.upload-label {
+    display: inline-block;
+    background-color: #f1f8e9;
+    color: var(--primary-color);
+    border: 2px dashed var(--secondary-color);
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin: 1rem 0;
+}
+
+.upload-label:hover {
+    background-color: #dcedc8;
+    transform: scale(1.02);
+}
+
+/* Image Preview */
+#imagePreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    display: none; /* ซ่อนไว้ก่อนจนกว่าจะเลือกรูป */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Result Card */
+.result-card {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: #fafafa;
+    border-radius: 1rem;
+    border-left: 5px solid var(--primary-color);
+    text-align: left;
+    display: none; /* ซ่อนไว้ก่อน */
+}
+
+.fish-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.2rem;
+}
+
+.sci-name {
+    font-style: italic;
+    color: #78909c;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.info-section {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #455a64;
+    background: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #eceff1;
+}
+
+.info-title {
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.loading {
+    color: #b0bec5;
+    margin-top: 1rem;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <a href="index.html">หน้าหลัก</a>
+    <a href="check.html" class="active">ตรวจสอบสายพันธุ์</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+</nav>
+
+<main>
+    <h2>ระบบวิเคราะห์ภาพถ่าย</h2>
+    <p>กรุณาอัปโหลดภาพปลาเพื่อทำการตรวจสอบ</p>
+
+    <label for="imageUpload" class="upload-label">
+        📂 เลือกไฟล์รูปภาพ
+    </label>
+    <input id="imageUpload" type="file" accept="image/*">
+
+    <img id="imagePreview" src="#" alt="Image Preview">
+    
+    <div id="loadingText" class="loading">กำลังประมวลผล...</div>
+
+    <div id="resultContainer" class="result-card">
+        <div class="fish-name" id="resName">-</div>
+        <span class="sci-name" id="resSci">-</span>
+        
+        <div class="info-section">
+            <span class="info-title">รายละเอียดทางกายภาพ:</span>
+            <span id="resDesc">-</span>
+        </div>
+        
+        <div style="margin-top:10px; font-size:0.8rem; color:#90a4ae;">
+            ความเชื่อมั่น: <span id="resProb">0</span>%
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+const URL = "https://teachablemachine.withgoogle.com/models/g_3iLyMoD/";
+let model, labelContainer, maxPredictions;
+
+// ข้อมูลจำเพาะสำหรับแสดงผล (ปรับแก้ตาม Class Name ใน Model ของคุณ)
+const fishData = {
+    "Blackchin": { // คีย์เวิร์ดสำหรับ ปลาหมอคางดำ (ต้องตรงกับ Label ใน Teachable Machine หรือส่วนหนึ่งของคำ)
+        thaiName: "ปลาหมอคางดำ",
+        sciName: "Sarotherodon melanotheron",
+        desc: "มีลักษณะเด่นคือจุดสีดำบริเวณใต้คาง (โดยเฉพาะเพศผู้) ลำตัวมีสีซีดจางหรือคล้ำ หางมีความโปร่งแสง ไม่มีลวดลายพาดขวาง เป็นชนิดพันธุ์ต่างถิ่นที่ส่งผลกระทบต่อระบบนิเวศ"
+    },
+    "Nile": { // คีย์เวิร์ดสำหรับ ปลานิล
+        thaiName: "ปลานิล",
+        sciName: "Oreochromis niloticus",
+        desc: "มีลักษณะเด่นคือลายพาดขวางสีดำหรือน้ำตาลเข้มบริเวณครีบหาง (Vertical bars) ลำตัวมีสีเทาอมดำ ครีบหลังมีขอบสีแดงหรือชมพูจางๆ เป็นปลาเศรษฐกิจที่สำคัญ"
+    }
+};
+
+(async()=>{
+    const loading = document.getElementById("loadingText");
+    loading.style.display = "block";
+    loading.innerText = "กำลังโหลดโมเดล...";
+    model = await tmImage.load(URL+"model.json", URL+"metadata.json");
+    maxPredictions = model.getTotalClasses();
+    loading.style.display = "none";
+})();
+
+document.getElementById("imageUpload").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    // แสดงรูปตัวอย่าง
+    const preview = document.getElementById("imagePreview");
+    const reader = new FileReader();
+    
+    reader.onload = ev => {
+        // preview.src = ev.target.result;
+        // preview.style.display = "block";
+        
+        // เริ่มทำนายเมื่อโหลดรูปเสร็จ
+        const img = new Image();
+        img.src = ev.target.result;
+        img.onload = () => predict(img);
+    }
+    reader.readAsDataURL(file);
+});
+
+async function predict(img) {
+    document.getElementById("loadingText").style.display = "block";
+    document.getElementById("resultContainer").style.display = "none";
+
+    const prediction = await model.predict(img);
+    
+    // หาค่าที่มากที่สุด
+    let bestPrediction = prediction[0];
+    for (let i = 1; i < prediction.length; i++) {
+        if (prediction[i].probability > bestPrediction.probability) {
+            bestPrediction = prediction[i];
+        }
+    }
+
+    displayResult(bestPrediction);
+}
+
+function displayResult(prediction) {
+    document.getElementById("loadingText").style.display = "none";
+    const container = document.getElementById("resultContainer");
+    
+    const className = prediction.className;
+    const probability = (prediction.probability * 100).toFixed(2);
+
+    // ตรรกะการเลือกข้อมูลมาแสดง (Mapping)
+    // หมายเหตุ: เช็คว่า Class Name ของคุณมีคำว่าอะไรบ้าง
+    let info = null;
+
+    // ตรวจสอบ keyword (Case insensitive)
+    if (className.toLowerCase().includes("blackchin") || className.includes("หมอ")) {
+        info = fishData["Blackchin"];
+    } else if (className.toLowerCase().includes("nile") || className.toLowerCase().includes("tilapia") || className.includes("นิล")) {
+        info = fishData["Nile"];
+    } else {
+        // กรณีไม่ตรงเงื่อนไข หรือเป็น Class อื่น
+        info = {
+            thaiName: className,
+            sciName: "Unknown Species",
+            desc: "ระบบไม่สามารถระบุรายละเอียดเชิงลึกของคลาสนี้ได้ชัดเจน กรุณาตรวจสอบ Label ใน Teachable Machine"
+        };
+    }
+
+    // อัปเดตข้อมูลลงใน HTML
+    document.getElementById("resName").innerText = info.thaiName;
+    document.getElementById("resSci").innerText = info.sciName;
+    document.getElementById("resDesc").innerText = info.desc;
+    document.getElementById("resProb").innerText = probability;
+
+    container.style.display = "block";
+}
+</script>
+
+</body>
+</html>
